@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: #090c15;
+  color: #f0f4ff;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Inter, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
