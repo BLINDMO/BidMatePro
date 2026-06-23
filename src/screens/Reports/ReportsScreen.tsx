@@ -45,7 +45,19 @@ export default function ReportsScreen() {
       .filter((j) => j.status !== 'paid' && j.status !== 'cancelled')
       .reduce((s, j) => s + Math.max(0, j.balanceDue), 0);
 
-    return { monthRevenue, ytdRevenue, categoryData, avgJob, outstanding };
+    // Aging of outstanding balances, bucketed by days since invoice/creation.
+    const aging = { '0-30': 0, '30-60': 0, '60-90': 0, '90+': 0 };
+    for (const j of jobs) {
+      if (j.status === 'paid' || j.status === 'cancelled' || j.balanceDue <= 0) continue;
+      const ref = new Date(j.invoiceSentAt ?? j.createdAt).getTime();
+      const days = Math.floor((now.getTime() - ref) / 864e5);
+      if (days < 30) aging['0-30'] += j.balanceDue;
+      else if (days < 60) aging['30-60'] += j.balanceDue;
+      else if (days < 90) aging['60-90'] += j.balanceDue;
+      else aging['90+'] += j.balanceDue;
+    }
+
+    return { monthRevenue, ytdRevenue, categoryData, avgJob, outstanding, aging };
   }, [jobs]);
 
   return (
@@ -70,6 +82,20 @@ export default function ReportsScreen() {
             <p className="text-xl font-bold text-rose">{fmtCurrency(data.outstanding)}</p>
           </Card>
         </div>
+
+        <Card>
+          <p className="mb-3 text-sm font-semibold text-ink-1">Outstanding by Age</p>
+          <div className="grid grid-cols-4 gap-2 text-center">
+            {(['0-30', '30-60', '60-90', '90+'] as const).map((bucket) => (
+              <div key={bucket} className="rounded-xl bg-surf p-2">
+                <p className={`text-sm font-bold ${data.aging[bucket] > 0 ? 'text-rose' : 'text-ink-3'}`}>
+                  {fmtCurrency(data.aging[bucket])}
+                </p>
+                <p className="mt-0.5 text-[10px] text-ink-3">{bucket} d</p>
+              </div>
+            ))}
+          </div>
+        </Card>
 
         <Card>
           <p className="mb-3 text-sm font-semibold text-ink-1">Revenue by Category</p>

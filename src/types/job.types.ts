@@ -105,6 +105,8 @@ export interface Job {
 
   clientId: string;
   clientName: string;
+  clientPhone: string;
+  clientEmail: string;
 
   jobAddress: string;
   jobCity: string;

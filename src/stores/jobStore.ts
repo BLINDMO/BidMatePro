@@ -66,6 +66,8 @@ export const useJobStore = create<JobStore>((set, get) => ({
       status: data.status ?? 'estimate',
       clientId: data.clientId ?? '',
       clientName: data.clientName ?? '',
+      clientPhone: data.clientPhone ?? '',
+      clientEmail: data.clientEmail ?? '',
       jobAddress: data.jobAddress ?? '',
       jobCity: data.jobCity ?? '',
       jobState: data.jobState ?? '',

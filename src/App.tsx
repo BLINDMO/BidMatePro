@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { useSettingsStore } from './stores/settingsStore';
 import { useJobStore } from './stores/jobStore';
@@ -6,18 +6,21 @@ import { useClientStore } from './stores/clientStore';
 import SplashScreen from './screens/Splash/SplashScreen';
 import MainLayout from './components/layout/MainLayout';
 import Toast from './components/ui/Toast';
+import Spinner from './components/ui/Spinner';
 
 import DashboardScreen from './screens/Dashboard/DashboardScreen';
 import JobsListScreen from './screens/Jobs/JobsListScreen';
 import JobDetailScreen from './screens/Jobs/JobDetailScreen';
 import EstimateBuilderScreen from './screens/Estimate/EstimateBuilderScreen';
-import InvoiceScreen from './screens/Invoice/InvoiceScreen';
 import MeasurementToolScreen from './screens/Camera/MeasurementToolScreen';
 import MoreScreen from './screens/More/MoreScreen';
 import ClientsListScreen from './screens/Clients/ClientsListScreen';
 import ClientDetailScreen from './screens/Clients/ClientDetailScreen';
-import ReportsScreen from './screens/Reports/ReportsScreen';
 import SettingsScreen from './screens/Settings/SettingsScreen';
+
+// Heavy screens (jsPDF / recharts) are loaded on demand.
+const InvoiceScreen = lazy(() => import('./screens/Invoice/InvoiceScreen'));
+const ReportsScreen = lazy(() => import('./screens/Reports/ReportsScreen'));
 import CompanyInfoScreen from './screens/Settings/CompanyInfoScreen';
 import LaborRatesScreen from './screens/Settings/LaborRatesScreen';
 import PricingDefaultsScreen from './screens/Settings/PricingDefaultsScreen';
@@ -46,6 +49,7 @@ export default function App() {
     <HashRouter>
       <div className="mx-auto min-h-screen max-w-[430px]">
         <Toast />
+        <Suspense fallback={<Spinner />}>
         <Routes>
           <Route element={<MainLayout />}>
             <Route path="/" element={<DashboardScreen />} />
@@ -67,6 +71,7 @@ export default function App() {
           <Route path="/settings/pricing" element={<PricingDefaultsScreen />} />
           <Route path="/settings/documents" element={<DocumentSettingsScreen />} />
         </Routes>
+        </Suspense>
       </div>
     </HashRouter>
   );

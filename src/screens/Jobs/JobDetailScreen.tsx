@@ -58,6 +58,7 @@ export default function JobDetailScreen() {
   const [payOpen, setPayOpen] = useState(false);
   const [notes, setNotes] = useState(job?.notes ?? '');
   const [internalNotes, setInternalNotes] = useState(job?.internalNotes ?? '');
+  const [viewPhoto, setViewPhoto] = useState<string | null>(null);
 
   // Payment form
   const [payAmount, setPayAmount] = useState('');
@@ -200,22 +201,26 @@ export default function JobDetailScreen() {
                 <span className="text-ink-1">{fmtCurrency(job.depositAmt)}</span>
               </div>
             </Card>
-            <div className="flex gap-2">
-              {job.clientName && (
-                <a
-                  href={`tel:`}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-line-md bg-elev py-2.5 text-sm text-ink-1"
-                >
-                  <Phone size={16} /> Call
-                </a>
-              )}
-              <a
-                href={`mailto:`}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-line-md bg-elev py-2.5 text-sm text-ink-1"
-              >
-                <Mail size={16} /> Email
-              </a>
-            </div>
+            {(job.clientPhone || job.clientEmail) && (
+              <div className="flex gap-2">
+                {job.clientPhone && (
+                  <a
+                    href={`tel:${job.clientPhone}`}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-line-md bg-elev py-2.5 text-sm text-ink-1"
+                  >
+                    <Phone size={16} /> Call
+                  </a>
+                )}
+                {job.clientEmail && (
+                  <a
+                    href={`mailto:${job.clientEmail}`}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-line-md bg-elev py-2.5 text-sm text-ink-1"
+                  >
+                    <Mail size={16} /> Email
+                  </a>
+                )}
+              </div>
+            )}
           </>
         )}
 
@@ -292,9 +297,13 @@ export default function JobDetailScreen() {
             ) : (
               <div className="grid grid-cols-3 gap-2">
                 {filteredPhotos.map((p) => (
-                  <div key={p.id} className="aspect-square overflow-hidden rounded-xl bg-elev">
+                  <button
+                    key={p.id}
+                    onClick={() => setViewPhoto(p.dataUrl)}
+                    className="aspect-square overflow-hidden rounded-xl bg-elev"
+                  >
                     <img src={p.thumbnail} alt={p.caption ?? p.phase} className="h-full w-full object-cover" />
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -441,6 +450,22 @@ export default function JobDetailScreen() {
           </div>
         </div>
       </BottomSheet>
+
+      {/* Full-screen photo viewer */}
+      {viewPhoto && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/95 p-4"
+          onClick={() => setViewPhoto(null)}
+        >
+          <img src={viewPhoto} alt="Photo" className="max-h-full max-w-full rounded-lg object-contain" />
+          <button
+            onClick={() => setViewPhoto(null)}
+            className="absolute right-4 top-[calc(env(safe-area-inset-top)+12px)] rounded-full bg-white/10 px-3 py-1.5 text-sm text-white"
+          >
+            Close
+          </button>
+        </div>
+      )}
     </div>
   );
 }

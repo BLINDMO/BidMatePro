@@ -4,6 +4,7 @@ import { calcJobTotals, calcItemTotal } from '../utils/calculations';
 import { newId } from '../utils/ids';
 import { useJobStore } from './jobStore';
 import { useSettingsStore } from './settingsStore';
+import { useClientStore } from './clientStore';
 import type { Job } from '../types/job.types';
 
 interface EstimateState {
@@ -171,6 +172,8 @@ export const useEstimateStore = create<EstimateState>((set, get) => ({
         categoryName: st.categoryName,
         clientId: st.clientId ?? existing.clientId,
         clientName: st.clientName,
+        clientPhone: st.clientPhone,
+        clientEmail: st.clientEmail,
         jobAddress: st.jobAddress,
         jobCity: st.jobCity,
         jobState: st.jobState,
@@ -188,14 +191,28 @@ export const useEstimateStore = create<EstimateState>((set, get) => ({
       return jobStore.getJob(updated.id)!;
     }
 
+    // Ensure a client record exists for new, hand-typed clients.
+    let clientId = st.clientId;
+    if (!clientId && st.clientName.trim()) {
+      const created = await useClientStore.getState().createClient({
+        name: st.clientName,
+        phone: st.clientPhone,
+        email: st.clientEmail,
+        billingAddress: st.jobAddress,
+      });
+      clientId = created.id;
+    }
+
     const jobNumber = await useSettingsStore.getState().getNextJobNumber();
     const job = await jobStore.createJob({
       jobNumber,
       status: 'estimate',
       categoryId: st.categoryId ?? '',
       categoryName: st.categoryName,
-      clientId: st.clientId ?? '',
+      clientId: clientId ?? '',
       clientName: st.clientName,
+      clientPhone: st.clientPhone,
+      clientEmail: st.clientEmail,
       jobAddress: st.jobAddress,
       jobCity: st.jobCity,
       jobState: st.jobState,
