@@ -57,7 +57,18 @@ export default function ReportsScreen() {
       else aging['90+'] += j.balanceDue;
     }
 
-    return { monthRevenue, ytdRevenue, categoryData, avgJob, outstanding, aging };
+    const clientRevenue = new Map<string, number>();
+    for (const j of jobs) {
+      if (!j.clientName) continue;
+      clientRevenue.set(j.clientName, (clientRevenue.get(j.clientName) ?? 0) + j.totalPaid);
+    }
+    const topClients = [...clientRevenue.entries()]
+      .map(([name, value]) => ({ name, value }))
+      .filter((c) => c.value > 0)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+
+    return { monthRevenue, ytdRevenue, categoryData, avgJob, outstanding, aging, topClients };
   }, [jobs]);
 
   return (
@@ -119,6 +130,23 @@ export default function ReportsScreen() {
             </ResponsiveContainer>
           )}
         </Card>
+
+        {data.topClients.length > 0 && (
+          <Card>
+            <p className="mb-3 text-sm font-semibold text-ink-1">Top Clients</p>
+            <div className="space-y-2">
+              {data.topClients.map((c, i) => (
+                <div key={c.name} className="flex items-center gap-3 text-sm">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-elev text-xs font-bold text-ink-2">
+                    {i + 1}
+                  </span>
+                  <span className="flex-1 truncate text-ink-1">{c.name}</span>
+                  <span className="font-semibold text-jade">{fmtCurrency(c.value)}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
       </div>
     </div>
   );

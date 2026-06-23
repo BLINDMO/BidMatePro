@@ -1,7 +1,11 @@
+import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, HardHat, Percent, FileText, Database, ChevronRight } from 'lucide-react';
+import { Building2, HardHat, Percent, FileText, Database, Upload, ChevronRight } from 'lucide-react';
 import { db } from '../../db/database';
 import { useUIStore } from '../../stores/uiStore';
+import { useJobStore } from '../../stores/jobStore';
+import { useClientStore } from '../../stores/clientStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 import ScreenHeader from '../../components/layout/ScreenHeader';
 
 const links = [
@@ -14,6 +18,36 @@ const links = [
 export default function SettingsScreen() {
   const navigate = useNavigate();
   const showToast = useUIStore((s) => s.showToast);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const importData = async (file: File) => {
+    try {
+      const parsed = JSON.parse(await file.text());
+      if (!confirm('Restore this backup? It will overwrite all current data.')) return;
+      await db.transaction('rw', db.jobs, db.clients, db.settings, db.photos, db.measurements, async () => {
+        await Promise.all([
+          db.jobs.clear(),
+          db.clients.clear(),
+          db.settings.clear(),
+          db.photos.clear(),
+          db.measurements.clear(),
+        ]);
+        if (parsed.jobs) await db.jobs.bulkPut(parsed.jobs);
+        if (parsed.clients) await db.clients.bulkPut(parsed.clients);
+        if (parsed.settings) await db.settings.bulkPut(parsed.settings);
+        if (parsed.photos) await db.photos.bulkPut(parsed.photos);
+        if (parsed.measurements) await db.measurements.bulkPut(parsed.measurements);
+      });
+      await Promise.all([
+        useSettingsStore.getState().loadSettings(),
+        useJobStore.getState().loadJobs(),
+        useClientStore.getState().loadClients(),
+      ]);
+      showToast('Backup restored');
+    } catch {
+      showToast('Invalid backup file', 'error');
+    }
+  };
 
   const exportData = async () => {
     const [jobs, clients, settings, photos, measurements] = await Promise.all([
@@ -61,6 +95,25 @@ export default function SettingsScreen() {
             <span className="flex-1 text-[15px] font-medium text-ink-1">Export All Data (JSON)</span>
             <ChevronRight size={18} className="text-ink-3" />
           </button>
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="mt-2 flex w-full items-center gap-3 rounded-2xl border border-line bg-card px-4 py-3.5 text-left active:bg-elev"
+          >
+            <Upload size={20} className="text-ink-2" />
+            <span className="flex-1 text-[15px] font-medium text-ink-1">Import / Restore Backup</span>
+            <ChevronRight size={18} className="text-ink-3" />
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) importData(f);
+              e.target.value = '';
+            }}
+          />
         </div>
 
         <p className="mt-8 text-center text-xs text-ink-3">© Jon Honeycutt, 2026</p>

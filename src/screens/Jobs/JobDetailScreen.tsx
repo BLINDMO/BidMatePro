@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Phone, Mail, MoreVertical, FileText, DollarSign, Camera, Trash2, Copy, Pencil } from 'lucide-react';
+import { Phone, Mail, MoreVertical, FileText, DollarSign, Camera, Trash2, Copy, Pencil, Plus } from 'lucide-react';
 import { useJobStore } from '../../stores/jobStore';
 import { useEstimateStore } from '../../stores/estimateStore';
 import { useUIStore } from '../../stores/uiStore';
@@ -8,7 +8,7 @@ import { useCameraCapture } from '../../hooks/useCamera';
 import { db } from '../../db/database';
 import { newId } from '../../utils/ids';
 import { fmtCurrency, fmtCurrencyFull, fmtDate } from '../../utils/format';
-import { STATUS_CONFIG, STATUS_ORDER, type JobStatus, type LineItemType, type PaymentMethod, type PhotoPhase } from '../../types/job.types';
+import { STATUS_CONFIG, STATUS_ORDER, type JobStatus, type LineItemType, type PaymentMethod, type PhotoPhase, type Photo } from '../../types/job.types';
 import ScreenHeader from '../../components/layout/ScreenHeader';
 import StatusBadge from '../../components/job/StatusBadge';
 import CategoryBadge from '../../components/job/CategoryBadge';
@@ -44,6 +44,7 @@ export default function JobDetailScreen() {
   const job = useJobStore((s) => s.jobs.find((j) => j.id === id));
   const updateStatus = useJobStore((s) => s.updateStatus);
   const saveJob = useJobStore((s) => s.saveJob);
+  const addLineItem = useJobStore((s) => s.addLineItem);
   const addPayment = useJobStore((s) => s.addPayment);
   const deleteJob = useJobStore((s) => s.deleteJob);
   const duplicateJob = useJobStore((s) => s.duplicateJob);
@@ -58,11 +59,20 @@ export default function JobDetailScreen() {
   const [payOpen, setPayOpen] = useState(false);
   const [notes, setNotes] = useState(job?.notes ?? '');
   const [internalNotes, setInternalNotes] = useState(job?.internalNotes ?? '');
-  const [viewPhoto, setViewPhoto] = useState<string | null>(null);
+  const [viewPhoto, setViewPhoto] = useState<Photo | null>(null);
 
   // Payment form
   const [payAmount, setPayAmount] = useState('');
   const [payMethod, setPayMethod] = useState<PaymentMethod>('check');
+
+  // Add-item form
+  const [addItemOpen, setAddItemOpen] = useState(false);
+  const [itemType, setItemType] = useState<LineItemType>('labor');
+  const [itemDesc, setItemDesc] = useState('');
+  const [itemQty, setItemQty] = useState('');
+  const [itemUnit, setItemUnit] = useState('hr');
+  const [itemPrice, setItemPrice] = useState('');
+  const [itemCO, setItemCO] = useState(false);
 
   if (!job) {
     return (
@@ -94,9 +104,44 @@ export default function JobDetailScreen() {
     });
   };
 
+  const updatePhoto = async (photoId: string, data: Partial<Photo>) => {
+    const photos = job.photos.map((p) => (p.id === photoId ? { ...p, ...data } : p));
+    const updated = photos.find((p) => p.id === photoId)!;
+    await db.photos.put(updated);
+    await saveJob({ ...job, photos });
+    setViewPhoto(updated);
+  };
+
+  const deletePhoto = async (photoId: string) => {
+    await db.photos.delete(photoId);
+    await saveJob({ ...job, photos: job.photos.filter((p) => p.id !== photoId) });
+    setViewPhoto(null);
+    showToast('Photo deleted', 'info');
+  };
+
   const saveNotes = async () => {
     await saveJob({ ...job, notes, internalNotes });
     showToast('Notes saved');
+  };
+
+  const submitItem = async () => {
+    const qty = Number(itemQty);
+    const price = Number(itemPrice);
+    if (!itemDesc.trim() || !qty || !price) return;
+    await addLineItem(job.id, {
+      type: itemType,
+      description: itemDesc,
+      quantity: qty,
+      unit: itemUnit,
+      unitPrice: price,
+      isChangeOrder: itemCO,
+    });
+    setItemDesc('');
+    setItemQty('');
+    setItemPrice('');
+    setItemCO(false);
+    setAddItemOpen(false);
+    showToast(itemCO ? 'Change order added' : 'Item added');
   };
 
   const recordPayment = async () => {
@@ -252,7 +297,14 @@ export default function JobDetailScreen() {
                       {items.map((i) => (
                         <div key={i.id} className="flex justify-between gap-3 text-sm">
                           <div className="min-w-0">
-                            <p className="truncate text-ink-1">{i.description}</p>
+                            <p className="truncate text-ink-1">
+                              {i.description}
+                              {i.isChangeOrder && (
+                                <span className="ml-1.5 rounded bg-amber-dim px-1 py-0.5 text-[10px] font-semibold text-amber">
+                                  CO
+                                </span>
+                              )}
+                            </p>
                             <p className="text-xs text-ink-3">
                               {i.quantity} {i.unit} × {fmtCurrencyFull(i.unitPrice)}
                             </p>
@@ -267,11 +319,14 @@ export default function JobDetailScreen() {
                 );
               })
             )}
-            {job.lineItems.length > 0 && (
-              <Button variant="secondary" full onClick={editEstimate}>
-                <Pencil size={16} /> Edit Line Items
+            <div className="grid grid-cols-2 gap-2.5">
+              <Button variant="secondary" onClick={() => setAddItemOpen(true)}>
+                <Plus size={16} /> Add Item
               </Button>
-            )}
+              <Button variant="secondary" onClick={editEstimate}>
+                <Pencil size={16} /> Edit Items
+              </Button>
+            </div>
           </>
         )}
 
@@ -299,7 +354,7 @@ export default function JobDetailScreen() {
                 {filteredPhotos.map((p) => (
                   <button
                     key={p.id}
-                    onClick={() => setViewPhoto(p.dataUrl)}
+                    onClick={() => setViewPhoto(p)}
                     className="aspect-square overflow-hidden rounded-xl bg-elev"
                   >
                     <img src={p.thumbnail} alt={p.caption ?? p.phase} className="h-full w-full object-cover" />
@@ -451,19 +506,92 @@ export default function JobDetailScreen() {
         </div>
       </BottomSheet>
 
+      {/* Add line item */}
+      <BottomSheet open={addItemOpen} onClose={() => setAddItemOpen(false)} title="Add Line Item">
+        <div className="space-y-3">
+          <Select
+            label="Type"
+            value={itemType}
+            onChange={(e) => {
+              const t = e.target.value as LineItemType;
+              setItemType(t);
+              setItemUnit(t === 'labor' ? 'hr' : t === 'allowance' ? 'allow' : 'ea');
+            }}
+            options={[
+              { value: 'labor', label: '👷 Labor' },
+              { value: 'material', label: '📦 Material' },
+              { value: 'subcontractor', label: '🔨 Subcontractor' },
+              { value: 'permit', label: '📋 Permit' },
+              { value: 'equipment', label: '🚜 Equipment' },
+              { value: 'allowance', label: '💰 Allowance' },
+              { value: 'credit', label: '➖ Credit' },
+            ]}
+          />
+          <Input label="Description" value={itemDesc} onChange={(e) => setItemDesc(e.target.value)} />
+          <div className="grid grid-cols-3 gap-2.5">
+            <Input label="Qty" type="number" inputMode="decimal" value={itemQty} onChange={(e) => setItemQty(e.target.value)} />
+            <Input label="Unit" value={itemUnit} onChange={(e) => setItemUnit(e.target.value)} />
+            <Input label="Price" type="number" inputMode="decimal" value={itemPrice} onChange={(e) => setItemPrice(e.target.value)} />
+          </div>
+          <button
+            onClick={() => setItemCO(!itemCO)}
+            className={`flex w-full items-center justify-between rounded-xl border px-3.5 py-3 text-sm ${
+              itemCO ? 'border-amber/40 bg-amber-dim text-amber' : 'border-line-md bg-surf text-ink-2'
+            }`}
+          >
+            <span>Mark as change order</span>
+            <span className={`h-5 w-9 rounded-full p-0.5 transition ${itemCO ? 'bg-amber' : 'bg-elev'}`}>
+              <span className={`block h-4 w-4 rounded-full bg-white transition ${itemCO ? 'translate-x-4' : ''}`} />
+            </span>
+          </button>
+          <Button full onClick={submitItem} disabled={!itemDesc.trim() || !itemQty || !itemPrice}>
+            Add Item
+          </Button>
+        </div>
+      </BottomSheet>
+
       {/* Full-screen photo viewer */}
       {viewPhoto && (
-        <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/95 p-4"
-          onClick={() => setViewPhoto(null)}
-        >
-          <img src={viewPhoto} alt="Photo" className="max-h-full max-w-full rounded-lg object-contain" />
-          <button
-            onClick={() => setViewPhoto(null)}
-            className="absolute right-4 top-[calc(env(safe-area-inset-top)+12px)] rounded-full bg-white/10 px-3 py-1.5 text-sm text-white"
-          >
-            Close
-          </button>
+        <div className="fixed inset-0 z-[70] flex flex-col bg-black/95">
+          <div className="flex justify-end p-4" style={{ paddingTop: 'calc(env(safe-area-inset-top)+12px)' }}>
+            <button
+              onClick={() => deletePhoto(viewPhoto.id)}
+              className="mr-2 rounded-full bg-rose/20 px-3 py-1.5 text-sm text-rose"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => setViewPhoto(null)}
+              className="rounded-full bg-white/10 px-3 py-1.5 text-sm text-white"
+            >
+              Close
+            </button>
+          </div>
+          <div className="flex flex-1 items-center justify-center px-4">
+            <img src={viewPhoto.dataUrl} alt={viewPhoto.caption ?? 'Photo'} className="max-h-full max-w-full rounded-lg object-contain" />
+          </div>
+          <div className="space-y-3 p-4 safe-bottom">
+            <div className="flex gap-1.5 overflow-x-auto">
+              {PHASES.filter((p) => p.id !== 'all').map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => updatePhoto(viewPhoto.id, { phase: p.id as PhotoPhase })}
+                  className={`whitespace-nowrap rounded-full px-3 py-1 text-xs ${
+                    viewPhoto.phase === p.id ? 'bg-amber text-bg' : 'bg-white/10 text-white'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            <input
+              value={viewPhoto.caption ?? ''}
+              onChange={(e) => setViewPhoto({ ...viewPhoto, caption: e.target.value })}
+              onBlur={(e) => updatePhoto(viewPhoto.id, { caption: e.target.value })}
+              placeholder="Add a caption…"
+              className="w-full rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-sm text-white placeholder:text-white/40 outline-none"
+            />
+          </div>
         </div>
       )}
     </div>

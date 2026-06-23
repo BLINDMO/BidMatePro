@@ -56,6 +56,7 @@ export interface LineItem {
   unitPrice: number;
   total: number;
   notes?: string;
+  isChangeOrder?: boolean;
   sortOrder: number;
 }
 
