@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Ruler, Save } from 'lucide-react';
+import { Ruler, Save, Sparkles } from 'lucide-react';
 import { useJobStore } from '../../stores/jobStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useAIMeasure, type AIMeasureResult } from '../../hooks/useAIMeasure';
 import { db } from '../../db/database';
 import { newId } from '../../utils/ids';
 import { calcRoomMeasurements } from '../../utils/calculations';
@@ -24,6 +25,22 @@ export default function MeasurementToolScreen() {
   const [height, setHeight] = useState('');
   const [waste, setWaste] = useState('10');
   const [jobPickerOpen, setJobPickerOpen] = useState(false);
+  const [ai, setAi] = useState<AIMeasureResult | null>(null);
+  const { scanRoom, loading: aiLoading } = useAIMeasure();
+
+  const onScan = async () => {
+    try {
+      const result = await scanRoom();
+      if (!result) return;
+      setAi(result);
+      if (result.estimatedLengthFt) setLength(String(result.estimatedLengthFt));
+      if (result.estimatedWidthFt) setWidth(String(result.estimatedWidthFt));
+      if (result.estimatedHeightFt) setHeight(String(result.estimatedHeightFt));
+      showToast('AI estimate ready — verify before saving', 'info');
+    } catch {
+      showToast('AI scan unavailable (needs deployed /api/ai-measure)', 'error');
+    }
+  };
 
   const l = Number(length) || 0;
   const w = Number(width) || 0;
@@ -91,6 +108,36 @@ export default function MeasurementToolScreen() {
             <span className="text-sm font-semibold">Area Calculator</span>
           </div>
           <div className="space-y-3">
+            <button
+              onClick={onScan}
+              disabled={aiLoading}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-violet/30 bg-violet/10 py-2.5 text-sm font-medium text-violet active:bg-violet/20 disabled:opacity-50"
+            >
+              <Sparkles size={16} />
+              {aiLoading ? 'Analyzing photo…' : 'Scan Room with AI'}
+            </button>
+            {ai && (
+              <div className="rounded-xl border border-line bg-surf p-2.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-ink-2">AI Estimate</span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 font-semibold ${
+                      ai.confidence === 'high'
+                        ? 'bg-jade/15 text-jade'
+                        : ai.confidence === 'medium'
+                          ? 'bg-amber-dim text-amber'
+                          : 'bg-rose/15 text-rose'
+                    }`}
+                  >
+                    {ai.confidence} confidence
+                  </span>
+                </div>
+                {ai.referenceObjectUsed && (
+                  <p className="mt-1 text-ink-3">Reference: {ai.referenceObjectUsed}</p>
+                )}
+                <p className="mt-1 text-ink-3">Verify and adjust the values below before saving.</p>
+              </div>
+            )}
             <Input label="Label" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Kitchen Floor" />
             <div className="grid grid-cols-2 gap-2.5">
               <Input label="Length" type="number" inputMode="decimal" suffix="ft" value={length} onChange={(e) => setLength(e.target.value)} />

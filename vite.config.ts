@@ -3,6 +3,10 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  // Relative base so the app works under GitHub Pages' /<repo>/ subpath
+  // regardless of repository-name casing. HashRouter keeps all routes on
+  // index.html, so no server rewrites are needed.
+  base: './',
   plugins: [
     react(),
     VitePWA({
