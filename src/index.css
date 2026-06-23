@@ -2,8 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dark theme (default) */
 :root {
   color-scheme: dark;
+  --bg: 9 12 21;
+  --surf: 15 21 37;
+  --card: 22 32 53;
+  --elev: 28 40 64;
+  --ink-1: 240 244 255;
+  --ink-2: 136 150 179;
+  --ink-3: 75 88 117;
+  --line: rgba(255, 255, 255, 0.05);
+  --line-md: rgba(255, 255, 255, 0.09);
+}
+
+/* Light theme */
+.light {
+  color-scheme: light;
+  --bg: 247 248 250;
+  --surf: 255 255 255;
+  --card: 255 255 255;
+  --elev: 237 241 247;
+  --ink-1: 17 24 39;
+  --ink-2: 90 102 122;
+  --ink-3: 148 160 178;
+  --line: rgba(2, 6, 23, 0.08);
+  --line-md: rgba(2, 6, 23, 0.14);
 }
 
 html,
@@ -14,8 +38,8 @@ body,
 
 body {
   margin: 0;
-  background-color: #090c15;
-  color: #f0f4ff;
+  background-color: rgb(var(--bg));
+  color: rgb(var(--ink-1));
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Inter, sans-serif;
   -webkit-font-smoothing: antialiased;
 }

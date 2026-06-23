@@ -20,7 +20,7 @@ export default function BottomNav() {
           <button
             onClick={() => navigate('/estimate/new')}
             aria-label="New estimate"
-            className="-mt-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber text-bg shadow-lg shadow-amber/20 active:opacity-80"
+            className="-mt-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber text-[#0B0E16] shadow-lg shadow-amber/20 active:opacity-80"
           >
             <Plus size={26} strokeWidth={2.6} />
           </button>

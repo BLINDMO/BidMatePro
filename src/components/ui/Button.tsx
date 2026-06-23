@@ -11,7 +11,7 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-amber text-bg font-semibold active:opacity-80',
+  primary: 'bg-amber text-[#0B0E16] font-semibold active:opacity-80',
   secondary: 'bg-elev text-ink-1 border border-line-md active:bg-card',
   ghost: 'bg-transparent text-ink-2 active:bg-elev',
   danger: 'bg-rose/15 text-rose border border-rose/30 active:bg-rose/25',

@@ -14,7 +14,7 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import BottomSheet from '../../components/ui/BottomSheet';
 
-type Surface = 'paint' | 'floor' | 'linear';
+type Surface = 'paint' | 'floor' | 'tile' | 'drywall' | 'concrete' | 'linear';
 
 interface Entry {
   id: string;
@@ -33,7 +33,10 @@ interface SuggestedItem {
 
 const SURFACES: { id: Surface; label: string; help: string }[] = [
   { id: 'paint', label: 'Walls (Paint)', help: 'Enter each wall width × height' },
-  { id: 'floor', label: 'Floor', help: 'Enter each area length × width' },
+  { id: 'floor', label: 'Floor (LVP)', help: 'Enter each area length × width' },
+  { id: 'tile', label: 'Tile', help: 'Enter each tiled area length × width' },
+  { id: 'drywall', label: 'Drywall', help: 'Enter each surface width × height' },
+  { id: 'concrete', label: 'Concrete', help: 'Enter each slab length × width' },
   { id: 'linear', label: 'Linear (Trim)', help: 'Enter each run length' },
 ];
 
@@ -56,6 +59,7 @@ export default function MeasurementToolScreen() {
   const [a, setA] = useState('');
   const [b, setB] = useState('');
   const [waste, setWaste] = useState('10');
+  const [thickness, setThickness] = useState('4'); // concrete slab thickness, inches
   const [includeLabor, setIncludeLabor] = useState(true);
   const [jobPickerOpen, setJobPickerOpen] = useState(false);
 
@@ -90,10 +94,10 @@ export default function MeasurementToolScreen() {
     setB('');
   };
 
-  const suggested = useMemo<SuggestedItem[]>(() => {
-    if (total <= 0) return buildSuggested(surface, 0, 0, includeLabor, getRate);
-    return buildSuggested(surface, total, totalWithWaste, includeLabor, getRate);
-  }, [surface, total, totalWithWaste, includeLabor, getRate]);
+  const suggested = useMemo<SuggestedItem[]>(
+    () => buildSuggested(surface, total, totalWithWaste, includeLabor, getRate, Number(thickness) || 4),
+    [surface, total, totalWithWaste, includeLabor, getRate, thickness],
+  );
 
   const suggestedTotal = suggested.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
 
@@ -266,6 +270,21 @@ export default function MeasurementToolScreen() {
                   </button>
                 </div>
               </div>
+              {surface === 'concrete' && (
+                <div className="mt-2.5">
+                  <Select
+                    label="Slab Thickness"
+                    value={thickness}
+                    onChange={(e) => setThickness(e.target.value)}
+                    options={[
+                      { value: '4', label: '4 in (standard)' },
+                      { value: '5', label: '5 in' },
+                      { value: '6', label: '6 in (heavy)' },
+                      { value: '3.5', label: '3.5 in' },
+                    ]}
+                  />
+                </div>
+              )}
             </Card>
 
             <Card>
@@ -338,8 +357,21 @@ export default function MeasurementToolScreen() {
 }
 
 function defaultLabel(surface: Surface): string {
-  return surface === 'paint' ? 'Wall' : surface === 'floor' ? 'Area' : 'Run';
+  switch (surface) {
+    case 'paint':
+    case 'drywall':
+      return 'Wall';
+    case 'floor':
+    case 'tile':
+      return 'Area';
+    case 'concrete':
+      return 'Slab';
+    default:
+      return 'Run';
+  }
 }
+
+const DEFAULT_LABOR = 125;
 
 /** Build the material + labor line items implied by a measurement total. */
 function buildSuggested(
@@ -348,67 +380,44 @@ function buildSuggested(
   totalWithWaste: number,
   includeLabor: boolean,
   getRate: (role: string) => number,
+  thicknessIn: number,
 ): SuggestedItem[] {
   const items: SuggestedItem[] = [];
+  const labor = (role: string, hours: number): SuggestedItem => ({
+    type: 'labor',
+    description: role,
+    quantity: Math.max(1, Math.ceil(hours)),
+    unit: 'hr',
+    unitPrice: getRate(role) || DEFAULT_LABOR,
+  });
 
   if (surface === 'paint') {
-    // 2 coats, ~350 sqft/gal coverage.
-    const gallons = Math.max(1, Math.ceil((totalWithWaste * 2) / 350));
-    items.push({
-      type: 'material',
-      description: 'Interior Paint (2 coats)',
-      quantity: gallons,
-      unit: 'gal',
-      unitPrice: 52,
-    });
-    if (includeLabor) {
-      const hours = Math.max(1, Math.ceil(total / 175)); // ~175 sqft/hr
-      items.push({
-        type: 'labor',
-        description: 'Painter',
-        quantity: hours,
-        unit: 'hr',
-        unitPrice: getRate('Painter') || 72,
-      });
-    }
+    const gallons = Math.max(1, Math.ceil((totalWithWaste * 2) / 350)); // 2 coats, ~350 sqft/gal
+    items.push({ type: 'material', description: 'Interior Paint (2 coats)', quantity: gallons, unit: 'gal', unitPrice: 52 });
+    if (includeLabor) items.push(labor('Painter', total / 175));
   } else if (surface === 'floor') {
-    items.push({
-      type: 'material',
-      description: 'LVP Flooring (mid-grade)',
-      quantity: Math.round(totalWithWaste),
-      unit: 'sqft',
-      unitPrice: 4.5,
-    });
-    if (includeLabor) {
-      const hours = Math.max(1, Math.ceil(total / 200)); // ~200 sqft/hr
-      items.push({
-        type: 'labor',
-        description: 'Flooring Installer',
-        quantity: hours,
-        unit: 'hr',
-        unitPrice: getRate('Flooring Installer') || 80,
-      });
-    }
+    items.push({ type: 'material', description: 'LVP Flooring (mid-grade)', quantity: Math.round(totalWithWaste), unit: 'sqft', unitPrice: 4.5 });
+    if (includeLabor) items.push(labor('Flooring Installer', total / 200));
+  } else if (surface === 'tile') {
+    items.push({ type: 'material', description: 'Porcelain Tile', quantity: Math.round(totalWithWaste), unit: 'sqft', unitPrice: 8 });
+    items.push({ type: 'material', description: 'Thinset Mortar (50lb)', quantity: Math.max(1, Math.ceil(totalWithWaste / 40)), unit: 'bag', unitPrice: 22 });
+    items.push({ type: 'material', description: 'Tile Grout (25lb)', quantity: Math.max(1, Math.ceil(totalWithWaste / 100)), unit: 'bag', unitPrice: 28 });
+    if (includeLabor) items.push(labor('Tile Setter', total / 100));
+  } else if (surface === 'drywall') {
+    const sheets = Math.max(1, Math.ceil(totalWithWaste / 32)); // 4x8 = 32 sqft
+    items.push({ type: 'material', description: 'Drywall 1/2" (4×8 sheet)', quantity: sheets, unit: 'sheet', unitPrice: 18 });
+    items.push({ type: 'material', description: 'Joint Compound (5-gal)', quantity: Math.max(1, Math.ceil(total / 400)), unit: 'pail', unitPrice: 23 });
+    items.push({ type: 'material', description: 'Drywall Screws (5lb)', quantity: Math.max(1, Math.ceil(total / 1000)), unit: 'box', unitPrice: 15 });
+    if (includeLabor) items.push(labor('Drywall Hanger/Finisher', total / 60));
+  } else if (surface === 'concrete') {
+    const cy = Math.max(0.5, Math.ceil(((total * (thicknessIn / 12)) / 27) * 2) / 2); // round to 0.5 cy
+    items.push({ type: 'material', description: `Ready-Mix Concrete (${thicknessIn}" slab)`, quantity: cy, unit: 'cy', unitPrice: 185 });
+    items.push({ type: 'material', description: 'Wire Mesh / Rebar', quantity: Math.max(1, Math.ceil(total / 50)), unit: 'sheet', unitPrice: 24 });
+    if (includeLabor) items.push(labor('Concrete Finisher', total / 100));
   } else {
-    // Linear — baseboard / trim in 16ft sticks.
-    const sticks = Math.max(1, Math.ceil(totalWithWaste / 16));
-    items.push({
-      type: 'material',
-      description: 'Baseboard / Trim (16ft)',
-      quantity: sticks,
-      unit: 'ea',
-      unitPrice: 18,
-    });
-    if (includeLabor) {
-      const hours = Math.max(1, Math.ceil(total / 40)); // ~40 lf/hr
-      items.push({
-        type: 'labor',
-        description: 'Finish Carpenter',
-        quantity: hours,
-        unit: 'hr',
-        unitPrice: getRate('Finish Carpenter') || 100,
-      });
-    }
+    const sticks = Math.max(1, Math.ceil(totalWithWaste / 16)); // 16ft sticks
+    items.push({ type: 'material', description: 'Baseboard / Trim (16ft)', quantity: sticks, unit: 'ea', unitPrice: 18 });
+    if (includeLabor) items.push(labor('Finish Carpenter', total / 40));
   }
 
   return items;

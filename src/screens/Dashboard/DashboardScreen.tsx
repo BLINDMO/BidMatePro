@@ -44,7 +44,7 @@ export default function DashboardScreen() {
       <div className="mt-4 grid grid-cols-2 gap-2.5 px-5">
         <button
           onClick={() => navigate('/estimate/new')}
-          className="flex items-center justify-center gap-2 rounded-2xl bg-amber py-3.5 text-[15px] font-semibold text-bg active:opacity-80"
+          className="flex items-center justify-center gap-2 rounded-2xl bg-amber py-3.5 text-[15px] font-semibold text-[#0B0E16] active:opacity-80"
         >
           <Plus size={18} /> New Estimate
         </button>

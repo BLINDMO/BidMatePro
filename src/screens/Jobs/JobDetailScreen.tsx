@@ -579,7 +579,7 @@ export default function JobDetailScreen() {
                   key={p.id}
                   onClick={() => updatePhoto(viewPhoto.id, { phase: p.id as PhotoPhase })}
                   className={`whitespace-nowrap rounded-full px-3 py-1 text-xs ${
-                    viewPhoto.phase === p.id ? 'bg-amber text-bg' : 'bg-white/10 text-white'
+                    viewPhoto.phase === p.id ? 'bg-amber text-[#0B0E16]' : 'bg-white/10 text-white'
                   }`}
                 >
                   {p.label}

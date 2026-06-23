@@ -21,7 +21,19 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
 
   loadSettings: async () => {
     await ensureSeeded();
-    const settings = (await db.settings.get(1)) ?? DEFAULT_SETTINGS;
+    let settings = (await db.settings.get(1)) ?? DEFAULT_SETTINGS;
+
+    // One-time reprice to the Kansas City, MO defaults (flat $125/hr labor,
+    // 10% markup). Runs once; preserves company info already entered.
+    const MIGRATION_KEY = 'bidmate-kc-defaults-v1';
+    if (typeof localStorage !== 'undefined' && !localStorage.getItem(MIGRATION_KEY)) {
+      const laborRates = { ...settings.laborRates };
+      for (const role of Object.keys(laborRates)) laborRates[role] = 125;
+      settings = { ...settings, laborRates, defaultMarkupPct: 10 };
+      await db.settings.put(settings);
+      localStorage.setItem(MIGRATION_KEY, '1');
+    }
+
     set({ settings, isLoaded: true });
   },
 

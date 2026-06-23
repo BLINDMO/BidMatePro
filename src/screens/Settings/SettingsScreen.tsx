@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, HardHat, Percent, FileText, Database, Upload, ChevronRight } from 'lucide-react';
+import { Building2, HardHat, Percent, FileText, Database, Upload, ChevronRight, Sun, Moon } from 'lucide-react';
 import { db } from '../../db/database';
 import { useUIStore } from '../../stores/uiStore';
 import { useJobStore } from '../../stores/jobStore';
@@ -18,6 +18,8 @@ const links = [
 export default function SettingsScreen() {
   const navigate = useNavigate();
   const showToast = useUIStore((s) => s.showToast);
+  const theme = useUIStore((s) => s.theme);
+  const setTheme = useUIStore((s) => s.setTheme);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const importData = async (file: File) => {
@@ -73,6 +75,27 @@ export default function SettingsScreen() {
     <div className="pb-8">
       <ScreenHeader title="Settings" back />
       <div className="space-y-2 px-5 pt-3">
+        <div className="mb-2 flex items-center gap-3 rounded-2xl border border-line bg-card px-4 py-3">
+          <span className="flex-1 text-[15px] font-medium text-ink-1">Appearance</span>
+          <div className="flex gap-1 rounded-xl bg-surf p-1">
+            <button
+              onClick={() => setTheme('light')}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm ${
+                theme === 'light' ? 'bg-elev text-ink-1' : 'text-ink-3'
+              }`}
+            >
+              <Sun size={15} /> Light
+            </button>
+            <button
+              onClick={() => setTheme('dark')}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm ${
+                theme === 'dark' ? 'bg-elev text-ink-1' : 'text-ink-3'
+              }`}
+            >
+              <Moon size={15} /> Dark
+            </button>
+          </div>
+        </div>
         {links.map((l) => (
           <button
             key={l.to}

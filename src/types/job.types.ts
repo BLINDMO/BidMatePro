@@ -151,6 +151,14 @@ export interface Job {
   invoiceSentAt?: string;
   paidAt?: string;
 
+  // E-signatures (base64 PNG) for the estimate
+  customerSignature?: string;
+  customerSignedName?: string;
+  customerSignedAt?: string;
+  contractorSignature?: string;
+  contractorSignedName?: string;
+  contractorSignedAt?: string;
+
   photos: Photo[];
   measurements: Measurement[];
   notes: string;

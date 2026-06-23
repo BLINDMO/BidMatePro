@@ -270,7 +270,7 @@ function StepScope() {
             >
               <span
                 className={`flex h-5 w-5 items-center justify-center rounded-md border ${
-                  checked ? 'border-amber bg-amber text-bg' : 'border-line-md'
+                  checked ? 'border-amber bg-amber text-[#0B0E16]' : 'border-line-md'
                 }`}
               >
                 {checked && <Check size={14} />}
@@ -376,17 +376,20 @@ function AddLaborSheet({ open, onClose }: { open: boolean; onClose: () => void }
   const cat = draft.categoryId ? getCategory(draft.categoryId) : undefined;
   const [desc, setDesc] = useState('');
   const [hours, setHours] = useState('');
+  const [workers, setWorkers] = useState('1');
   const [rate, setRate] = useState('');
 
   const trades = cat?.defaultTrades.length
     ? LABOR_PRESETS.filter((p) => cat.defaultTrades.includes(p.role))
     : LABOR_PRESETS;
 
-  const total = calcItemTotal(Number(hours) || 0, Number(rate) || 0);
+  const crew = Math.max(1, Number(workers) || 1);
+  const manHours = (Number(hours) || 0) * crew;
+  const total = calcItemTotal(manHours, Number(rate) || 0);
 
   const pick = (role: string) => {
     setDesc(role);
-    const r = getRate(role) || LABOR_PRESETS.find((p) => p.role === role)?.defaultRate || 0;
+    const r = getRate(role) || LABOR_PRESETS.find((p) => p.role === role)?.defaultRate || 125;
     setRate(String(r));
   };
 
@@ -394,13 +397,14 @@ function AddLaborSheet({ open, onClose }: { open: boolean; onClose: () => void }
     if (!desc || !hours || !rate) return;
     draft.addLineItem({
       type: 'labor',
-      description: desc,
-      quantity: Number(hours),
+      description: crew > 1 ? `${desc} (${crew} workers × ${hours} hr)` : desc,
+      quantity: manHours,
       unit: 'hr',
       unitPrice: Number(rate),
     });
     setDesc('');
     setHours('');
+    setWorkers('1');
     setRate('');
     onClose();
   };
@@ -420,12 +424,14 @@ function AddLaborSheet({ open, onClose }: { open: boolean; onClose: () => void }
           ))}
         </div>
         <Input label="Description" value={desc} onChange={(e) => setDesc(e.target.value)} />
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-3 gap-2.5">
           <Input label="Hours" type="number" inputMode="decimal" value={hours} onChange={(e) => setHours(e.target.value)} />
+          <Input label="Workers" type="number" inputMode="numeric" value={workers} onChange={(e) => setWorkers(e.target.value)} />
           <Input label="Rate ($/hr)" type="number" inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value)} />
         </div>
         <p className="text-center text-sm text-ink-2">
-          {hours || 0} hrs × ${rate || 0}/hr = <span className="font-bold text-amber">{fmtCurrencyFull(total)}</span>
+          {crew} {crew === 1 ? 'worker' : 'workers'} × {hours || 0} hr × ${rate || 0}/hr ={' '}
+          <span className="font-bold text-amber">{fmtCurrencyFull(total)}</span>
         </p>
         <Button full onClick={submit} disabled={!desc || !hours || !rate}>
           Add Labor
