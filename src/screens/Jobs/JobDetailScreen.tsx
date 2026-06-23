@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Phone, Mail, MoreVertical, FileText, DollarSign, Camera, Trash2, Copy, Pencil, Plus } from 'lucide-react';
+import { Phone, Mail, MoreVertical, FileText, DollarSign, Camera, Trash2, Copy, Pencil, Plus, Package, SearchX } from 'lucide-react';
+import { LINE_TYPE_ICONS } from '../../data/categoryIcons';
 import { useJobStore } from '../../stores/jobStore';
 import { useEstimateStore } from '../../stores/estimateStore';
 import { useUIStore } from '../../stores/uiStore';
@@ -20,14 +21,14 @@ import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
 import EmptyState from '../../components/ui/EmptyState';
 
-const TYPE_SECTIONS: { type: LineItemType; label: string; icon: string }[] = [
-  { type: 'labor', label: 'Labor', icon: '👷' },
-  { type: 'material', label: 'Materials', icon: '📦' },
-  { type: 'subcontractor', label: 'Subcontractors', icon: '🔨' },
-  { type: 'permit', label: 'Permits', icon: '📋' },
-  { type: 'equipment', label: 'Equipment', icon: '🚜' },
-  { type: 'allowance', label: 'Allowances', icon: '💰' },
-  { type: 'credit', label: 'Credits', icon: '➖' },
+const TYPE_SECTIONS: { type: LineItemType; label: string }[] = [
+  { type: 'labor', label: 'Labor' },
+  { type: 'material', label: 'Materials' },
+  { type: 'subcontractor', label: 'Subcontractors' },
+  { type: 'permit', label: 'Permits' },
+  { type: 'equipment', label: 'Equipment' },
+  { type: 'allowance', label: 'Allowances' },
+  { type: 'credit', label: 'Credits' },
 ];
 
 const PHASES: { id: PhotoPhase | 'all'; label: string }[] = [
@@ -78,7 +79,7 @@ export default function JobDetailScreen() {
     return (
       <div>
         <ScreenHeader title="Job" back />
-        <EmptyState icon="🤷" title="Job not found" />
+        <EmptyState icon={<SearchX size={36} strokeWidth={1.5} />} title="Job not found" />
       </div>
     );
   }
@@ -273,21 +274,22 @@ export default function JobDetailScreen() {
           <>
             {job.lineItems.length === 0 ? (
               <EmptyState
-                icon="📦"
+                icon={<Package size={36} strokeWidth={1.5} />}
                 title="No line items"
                 subtitle="Edit the estimate to add labor and materials."
                 action={<Button onClick={editEstimate}>Edit Estimate</Button>}
               />
             ) : (
-              TYPE_SECTIONS.map(({ type, label, icon }) => {
+              TYPE_SECTIONS.map(({ type, label }) => {
                 const items = job.lineItems.filter((i) => i.type === type);
                 if (items.length === 0) return null;
                 const subtotal = items.reduce((s, i) => s + i.total, 0);
+                const SectionIcon = LINE_TYPE_ICONS[type];
                 return (
                   <Card key={type}>
                     <div className="mb-2 flex items-center justify-between">
-                      <span className="text-sm font-semibold text-ink-1">
-                        {icon} {label}
+                      <span className="flex items-center gap-1.5 text-sm font-semibold text-ink-1">
+                        <SectionIcon size={15} className="text-ink-2" /> {label}
                       </span>
                       <span className="text-sm font-semibold text-ink-2">
                         {fmtCurrency(subtotal)}
@@ -348,7 +350,7 @@ export default function JobDetailScreen() {
               ))}
             </div>
             {filteredPhotos.length === 0 ? (
-              <EmptyState icon="📷" title="No photos" subtitle="Document the job site." />
+              <EmptyState icon={<Camera size={36} strokeWidth={1.5} />} title="No photos" subtitle="Document the job site." />
             ) : (
               <div className="grid grid-cols-3 gap-2">
                 {filteredPhotos.map((p) => (
@@ -518,13 +520,13 @@ export default function JobDetailScreen() {
               setItemUnit(t === 'labor' ? 'hr' : t === 'allowance' ? 'allow' : 'ea');
             }}
             options={[
-              { value: 'labor', label: '👷 Labor' },
-              { value: 'material', label: '📦 Material' },
-              { value: 'subcontractor', label: '🔨 Subcontractor' },
-              { value: 'permit', label: '📋 Permit' },
-              { value: 'equipment', label: '🚜 Equipment' },
-              { value: 'allowance', label: '💰 Allowance' },
-              { value: 'credit', label: '➖ Credit' },
+              { value: 'labor', label: 'Labor' },
+              { value: 'material', label: 'Material' },
+              { value: 'subcontractor', label: 'Subcontractor' },
+              { value: 'permit', label: 'Permit' },
+              { value: 'equipment', label: 'Equipment' },
+              { value: 'allowance', label: 'Allowance' },
+              { value: 'credit', label: 'Credit' },
             ]}
           />
           <Input label="Description" value={itemDesc} onChange={(e) => setItemDesc(e.target.value)} />

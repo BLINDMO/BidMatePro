@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, ClipboardList } from 'lucide-react';
 import { useJobStore } from '../../stores/jobStore';
 import { STATUS_CONFIG, STATUS_ORDER, type JobStatus } from '../../types/job.types';
 import ScreenHeader from '../../components/layout/ScreenHeader';
@@ -89,7 +89,7 @@ export default function JobsListScreen() {
       <div className="mt-3 space-y-3 px-5">
         {filtered.length === 0 ? (
           <EmptyState
-            icon="📋"
+            icon={<ClipboardList size={36} strokeWidth={1.5} />}
             title="No jobs here"
             subtitle="Create your first estimate to get started."
             action={

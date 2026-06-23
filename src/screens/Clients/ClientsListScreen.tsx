@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, ChevronRight } from 'lucide-react';
+import { Plus, ChevronRight, Users } from 'lucide-react';
 import { useClientStore } from '../../stores/clientStore';
 import { useJobStore } from '../../stores/jobStore';
 import { useUIStore } from '../../stores/uiStore';
@@ -65,7 +65,7 @@ export default function ClientsListScreen() {
       <div className="mt-3 space-y-2 px-5">
         {filtered.length === 0 ? (
           <EmptyState
-            icon="👥"
+            icon={<Users size={36} strokeWidth={1.5} />}
             title="No clients"
             subtitle="Add a client or create an estimate."
             action={<Button onClick={() => setAddOpen(true)}>Add Client</Button>}

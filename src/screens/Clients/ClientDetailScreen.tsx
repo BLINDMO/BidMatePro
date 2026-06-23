@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { Phone, Mail } from 'lucide-react';
+import { Phone, Mail, UserX, ClipboardList } from 'lucide-react';
 import { useClientStore } from '../../stores/clientStore';
 import { useJobStore } from '../../stores/jobStore';
 import { fmtCurrency, fmtPhone, initials } from '../../utils/format';
@@ -16,7 +16,7 @@ export default function ClientDetailScreen() {
     return (
       <div>
         <ScreenHeader title="Client" back />
-        <EmptyState icon="🤷" title="Client not found" />
+        <EmptyState icon={<UserX size={36} strokeWidth={1.5} />} title="Client not found" />
       </div>
     );
   }
@@ -65,7 +65,7 @@ export default function ClientDetailScreen() {
         <h2 className="mb-3 mt-6 text-base font-semibold text-ink-1">Jobs</h2>
         <div className="space-y-3">
           {jobs.length === 0 ? (
-            <EmptyState icon="📋" title="No jobs yet" />
+            <EmptyState icon={<ClipboardList size={36} strokeWidth={1.5} />} title="No jobs yet" />
           ) : (
             jobs.map((j) => <JobCard key={j.id} job={j} />)
           )}

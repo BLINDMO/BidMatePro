@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Plus, Ruler, ChevronRight } from 'lucide-react';
+import { Plus, Ruler, ChevronRight, ClipboardList } from 'lucide-react';
 import { useJobStore } from '../../stores/jobStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { fmtCurrency, initials } from '../../utils/format';
@@ -71,7 +71,7 @@ export default function DashboardScreen() {
       <div className="mt-3 space-y-3 px-5">
         {recent.length === 0 ? (
           <EmptyState
-            icon="🔨"
+            icon={<ClipboardList size={36} strokeWidth={1.5} />}
             title="No jobs yet"
             subtitle="Tap the + button to create your first estimate."
           />

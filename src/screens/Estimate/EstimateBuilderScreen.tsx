@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Check, Plus, Trash2, Search } from 'lucide-react';
 import { CATEGORIES, getCategory } from '../../data/categories';
+import { getCategoryIcon, LINE_TYPE_ICONS } from '../../data/categoryIcons';
 import { LABOR_PRESETS } from '../../data/laborPresets';
 import { getMaterialPresets } from '../../data/materialPresets';
 import { useEstimateStore, useEstimateTotals } from '../../stores/estimateStore';
@@ -115,15 +116,16 @@ function StepCategory() {
       <div className="grid grid-cols-2 gap-2.5">
         {CATEGORIES.map((c) => {
           const active = categoryId === c.id;
+          const Icon = getCategoryIcon(c.id);
           return (
             <button
               key={c.id}
               onClick={() => setCategory(c.id, c.name)}
-              className={`flex flex-col items-start gap-2 rounded-2xl border p-3.5 text-left transition ${
+              className={`flex flex-col items-start gap-2.5 rounded-2xl border p-3.5 text-left transition ${
                 active ? 'border-amber bg-amber-dim' : 'border-line bg-card'
               }`}
             >
-              <span className="text-2xl">{c.icon}</span>
+              <Icon size={22} style={{ color: c.color }} />
               <span className="text-sm font-medium text-ink-1">{c.name}</span>
             </button>
           );
@@ -295,10 +297,10 @@ function StepLineItems() {
   const [laborOpen, setLaborOpen] = useState(false);
   const [matOpen, setMatOpen] = useState(false);
 
-  const sections: { type: LineItemType; label: string; icon: string }[] = [
-    { type: 'labor', label: 'Labor', icon: '👷' },
-    { type: 'material', label: 'Materials', icon: '📦' },
-    { type: 'allowance', label: 'Allowances', icon: '💰' },
+  const sections: { type: LineItemType; label: string }[] = [
+    { type: 'labor', label: 'Labor' },
+    { type: 'material', label: 'Materials' },
+    { type: 'allowance', label: 'Allowances' },
   ];
 
   return (
@@ -311,15 +313,16 @@ function StepLineItems() {
         </p>
       )}
 
-      {sections.map(({ type, label, icon }) => {
+      {sections.map(({ type, label }) => {
         const items = draft.lineItems.filter((i) => i.type === type);
         if (items.length === 0) return null;
         const subtotal = items.reduce((s, i) => s + i.total, 0);
+        const Icon = LINE_TYPE_ICONS[type];
         return (
           <div key={type} className="rounded-2xl border border-line bg-card p-3.5">
             <div className="mb-2 flex justify-between text-sm font-semibold text-ink-1">
-              <span>
-                {icon} {label}
+              <span className="flex items-center gap-1.5">
+                <Icon size={15} className="text-ink-2" /> {label}
               </span>
               <span>{fmtCurrencyFull(subtotal)}</span>
             </div>
@@ -545,8 +548,12 @@ function StepSummary({ totals }: { totals: ReturnType<typeof useEstimateTotals> 
           {draft.jobAddress}
           {draft.jobCity ? `, ${draft.jobCity}` : ''}
         </p>
-        <p className="mt-1 text-sm text-amber">
-          {getCategory(draft.categoryId ?? '')?.icon} {draft.categoryName}
+        <p className="mt-1 flex items-center gap-1.5 text-sm text-amber">
+          {(() => {
+            const Icon = getCategoryIcon(draft.categoryId ?? '');
+            return <Icon size={14} />;
+          })()}
+          {draft.categoryName}
         </p>
       </div>
 
