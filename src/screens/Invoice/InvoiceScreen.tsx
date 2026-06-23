@@ -103,7 +103,11 @@ export default function InvoiceScreen() {
       <div className="mx-5 rounded-2xl bg-white p-5 text-[#111827] shadow-xl">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-base font-bold">{settings.companyName}</p>
+            {settings.logoDataUrl ? (
+              <img src={settings.logoDataUrl} alt={settings.companyName} className="mb-1.5 h-9 w-auto object-contain" />
+            ) : (
+              <p className="text-base font-bold">{settings.companyName}</p>
+            )}
             <p className="text-[11px] text-gray-500">
               {settings.licenseNumber && `Lic# ${settings.licenseNumber}`}
             </p>

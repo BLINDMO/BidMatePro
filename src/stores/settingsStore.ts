@@ -34,6 +34,31 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
       localStorage.setItem(MIGRATION_KEY, '1');
     }
 
+    // One-time: seed the Heller Construction brand logo + name if not yet set.
+    const BRAND_KEY = 'bidmate-brand-logo-v1';
+    if (typeof localStorage !== 'undefined' && !localStorage.getItem(BRAND_KEY) && !settings.logoDataUrl) {
+      try {
+        const res = await fetch(`${import.meta.env.BASE_URL}brand/heller-logo.png`);
+        const blob = await res.blob();
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => resolve(r.result as string);
+          r.onerror = reject;
+          r.readAsDataURL(blob);
+        });
+        settings = {
+          ...settings,
+          logoDataUrl: dataUrl,
+          companyName:
+            settings.companyName === 'Your Company Name' ? 'Heller Construction' : settings.companyName,
+        };
+        await db.settings.put(settings);
+        localStorage.setItem(BRAND_KEY, '1');
+      } catch {
+        /* asset unavailable offline on first run — will retry next load */
+      }
+    }
+
     set({ settings, isLoaded: true });
   },
 

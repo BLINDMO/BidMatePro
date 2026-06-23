@@ -11,6 +11,30 @@ const fmtDate = (d: Date) =>
 
 const addDays = (d: Date, days: number) => new Date(d.getTime() + days * 864e5);
 
+/** Draw a logo fit within maxW × maxH preserving aspect ratio; returns drawn size. */
+function drawLogo(
+  doc: jsPDF,
+  dataUrl: string,
+  x: number,
+  y: number,
+  maxW: number,
+  maxH: number,
+): { w: number; h: number } | null {
+  try {
+    const props = doc.getImageProperties(dataUrl);
+    let w = maxW;
+    let h = (w * props.height) / props.width;
+    if (h > maxH) {
+      h = maxH;
+      w = (h * props.width) / props.height;
+    }
+    doc.addImage(dataUrl, 'PNG', x, y, w, h);
+    return { w, h };
+  } catch {
+    return null;
+  }
+}
+
 type DocKind = 'invoice' | 'estimate';
 
 export function generateDocPDF(job: Job, settings: CompanySettings, kind: DocKind): jsPDF {
@@ -22,26 +46,25 @@ export function generateDocPDF(job: Job, settings: CompanySettings, kind: DocKin
   const isInvoice = kind === 'invoice';
   const accent = '#F5A623';
 
-  // Company header
-  if (settings.logoDataUrl) {
-    try {
-      doc.addImage(settings.logoDataUrl, 'PNG', M, y, 28, 14);
-    } catch {
-      /* ignore bad logo */
-    }
-  }
-  const textX = settings.logoDataUrl ? M + 32 : M;
-  doc.setFontSize(16).setFont('helvetica', 'bold').setTextColor('#111827');
-  doc.text(settings.companyName, textX, y + 7);
-  doc.setFontSize(8).setFont('helvetica', 'normal').setTextColor('#6B7280');
-  [
+  // Company header — logo (with its built-in wordmark) or company name text
+  const contact = [
     settings.licenseNumber ? `Lic# ${settings.licenseNumber}` : '',
     [settings.city, settings.state, settings.zip].filter(Boolean).join(', '),
     settings.phone,
     settings.email,
-  ]
-    .filter(Boolean)
-    .forEach((line, i) => doc.text(line, textX, y + 13 + i * 4));
+  ].filter(Boolean);
+
+  const logo = settings.logoDataUrl ? drawLogo(doc, settings.logoDataUrl, M, y, 62, 16) : null;
+  if (logo) {
+    const cy = y + logo.h + 5;
+    doc.setFontSize(8).setFont('helvetica', 'normal').setTextColor('#6B7280');
+    contact.forEach((line, i) => doc.text(line, M, cy + i * 4));
+  } else {
+    doc.setFontSize(16).setFont('helvetica', 'bold').setTextColor('#111827');
+    doc.text(settings.companyName, M, y + 7);
+    doc.setFontSize(8).setFont('helvetica', 'normal').setTextColor('#6B7280');
+    contact.forEach((line, i) => doc.text(line, M, y + 13 + i * 4));
+  }
 
   // Title (right)
   doc.setFontSize(24).setFont('helvetica', 'bold').setTextColor(accent);
@@ -197,10 +220,16 @@ export function generateScopePackagePDF(job: Job, settings: CompanySettings): js
   const M = 18;
   let y = M;
 
+  // Brand header
+  const logo = settings.logoDataUrl ? drawLogo(doc, settings.logoDataUrl, M, y, 58, 15) : null;
+  if (logo) y += logo.h + 4;
   doc.setFontSize(18).setFont('helvetica', 'bold').setTextColor('#111827');
   doc.text('Scope of Work', M, y + 6);
   doc.setFontSize(9).setFont('helvetica', 'normal').setTextColor('#6B7280');
   doc.text(`${settings.companyName}  ·  ${job.jobNumber}`, M, y + 12);
+  // Title block (right) for the project total
+  doc.setFontSize(9).setFont('helvetica', 'normal').setTextColor('#6B7280');
+  doc.text(fmtDate(new Date()), PW - M, y + 6, { align: 'right' });
   y += 22;
 
   doc.setFontSize(7).setFont('helvetica', 'bold').setTextColor('#9CA3AF').text('PREPARED FOR', M, y);
