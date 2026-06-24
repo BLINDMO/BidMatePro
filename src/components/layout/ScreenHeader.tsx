@@ -18,19 +18,19 @@ export default function ScreenHeader({ title, subtitle, back, onBack, right }: P
         className="flex items-center gap-2 px-4"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
-        <div className="flex h-14 flex-1 items-center gap-2">
+        <div className="flex h-16 flex-1 items-center gap-2">
           {back && (
             <button
               onClick={() => (onBack ? onBack() : navigate(-1))}
-              className="-ml-1.5 flex h-9 w-9 items-center justify-center rounded-full active:bg-elev"
+              className="-ml-1.5 flex h-10 w-10 items-center justify-center rounded-full active:bg-elev"
               aria-label="Back"
             >
-              <ChevronLeft size={22} className="text-ink-1" />
+              <ChevronLeft size={24} className="text-ink-1" />
             </button>
           )}
           <div className="min-w-0">
-            <h1 className="truncate text-xl font-bold text-ink-1">{title}</h1>
-            {subtitle && <p className="truncate text-xs text-ink-2">{subtitle}</p>}
+            <h1 className="truncate text-2xl font-bold text-ink-1">{title}</h1>
+            {subtitle && <p className="truncate text-[13px] text-ink-2">{subtitle}</p>}
           </div>
         </div>
         {right && <div className="flex items-center gap-1">{right}</div>}

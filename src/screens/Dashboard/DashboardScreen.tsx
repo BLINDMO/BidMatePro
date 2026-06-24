@@ -18,50 +18,54 @@ export default function DashboardScreen() {
   const estimateCount = getByStatus('estimate').length;
   const recent = jobs.slice(0, 6);
 
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  });
 
   return (
     <div>
       <header
-        className="flex items-center gap-3 px-5 pb-3"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 14px)' }}
+        className="flex items-center gap-3.5 px-5 pb-4"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 16px)' }}
       >
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-dim text-sm font-bold text-amber">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-dim text-base font-bold text-amber">
           {initials(company) || 'BM'}
         </div>
-        <div className="flex-1">
-          <p className="text-lg font-bold text-ink-1">BidMate Pro</p>
-          <p className="text-xs text-ink-2">{today}</p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-2xl font-extrabold text-ink-1">{company}</p>
+          <p className="text-sm text-ink-2">{today}</p>
         </div>
       </header>
 
-      <div className="grid grid-cols-3 gap-2.5 px-5">
+      <div className="grid grid-cols-3 gap-3 px-5">
         <Stat label="This Month" value={fmtCurrency(monthRevenue)} accent="text-jade" />
         <Stat label="Active" value={String(activeCount)} accent="text-teal" />
-        <Stat label="Pending Est." value={String(estimateCount)} accent="text-amber" />
+        <Stat label="Pending" value={String(estimateCount)} accent="text-amber" />
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2.5 px-5">
+      <div className="mt-4 grid grid-cols-2 gap-3 px-5">
         <button
           onClick={() => navigate('/estimate/new')}
-          className="flex items-center justify-center gap-2 rounded-2xl bg-amber py-3.5 text-[15px] font-semibold text-[#0B0E16] active:opacity-80"
+          className="flex items-center justify-center gap-2 rounded-2xl bg-amber py-4 text-base font-semibold text-[#0B0E16] active:opacity-80"
         >
-          <Plus size={18} /> New Estimate
+          <Plus size={20} /> New Estimate
         </button>
         <button
           onClick={() => navigate('/measure')}
-          className="flex items-center justify-center gap-2 rounded-2xl border border-line-md bg-elev py-3.5 text-[15px] font-semibold text-ink-1 active:bg-card"
+          className="flex items-center justify-center gap-2 rounded-2xl border border-line-md bg-elev py-4 text-base font-semibold text-ink-1 active:bg-card"
         >
-          <Ruler size={18} /> Measure
+          <Ruler size={20} /> Measure
         </button>
       </div>
 
-      <div className="mt-6 flex items-center justify-between px-5">
-        <h2 className="text-base font-semibold text-ink-1">Recent Jobs</h2>
+      <div className="mt-7 flex items-center justify-between px-5">
+        <h2 className="text-lg font-bold text-ink-1">Recent Jobs</h2>
         {jobs.length > 0 && (
           <button
             onClick={() => navigate('/jobs')}
-            className="flex items-center text-sm text-amber"
+            className="flex items-center text-sm font-medium text-amber"
           >
             See All <ChevronRight size={16} />
           </button>
@@ -71,7 +75,7 @@ export default function DashboardScreen() {
       <div className="mt-3 space-y-3 px-5">
         {recent.length === 0 ? (
           <EmptyState
-            icon={<ClipboardList size={36} strokeWidth={1.5} />}
+            icon={<ClipboardList size={44} strokeWidth={1.5} />}
             title="No jobs yet"
             subtitle="Tap the + button to create your first estimate."
           />
@@ -85,9 +89,9 @@ export default function DashboardScreen() {
 
 function Stat({ label, value, accent }: { label: string; value: string; accent: string }) {
   return (
-    <div className="rounded-2xl border border-line bg-card p-3">
-      <p className={`text-xl font-extrabold ${accent}`}>{value}</p>
-      <p className="mt-0.5 text-[11px] text-ink-2">{label}</p>
+    <div className="rounded-2xl border border-line bg-card p-4">
+      <p className={`truncate text-2xl font-extrabold ${accent}`}>{value}</p>
+      <p className="mt-1 text-[13px] text-ink-2">{label}</p>
     </div>
   );
 }

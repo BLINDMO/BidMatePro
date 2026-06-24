@@ -11,8 +11,8 @@ const items = [
 export default function BottomNav() {
   const navigate = useNavigate();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[430px] border-t border-line bg-surf/95 backdrop-blur-md">
-      <div className="safe-bottom relative flex h-[68px] items-stretch">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line-md bg-surf shadow-[0_-2px_16px_rgba(0,0,0,0.25)]">
+      <div className="safe-bottom mx-auto flex h-[74px] w-full items-stretch">
         {items.slice(0, 2).map((it) => (
           <Tab key={it.to} {...it} />
         ))}
@@ -20,9 +20,9 @@ export default function BottomNav() {
           <button
             onClick={() => navigate('/estimate/new')}
             aria-label="New estimate"
-            className="-mt-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber text-[#0B0E16] shadow-lg shadow-amber/20 active:opacity-80"
+            className="-mt-6 flex h-16 w-16 items-center justify-center rounded-[20px] bg-amber text-[#0B0E16] shadow-lg shadow-amber/30 active:scale-95"
           >
-            <Plus size={26} strokeWidth={2.6} />
+            <Plus size={30} strokeWidth={2.6} />
           </button>
         </div>
         {items.slice(2).map((it) => (
@@ -48,12 +48,14 @@ function Tab({
     <NavLink
       to={to}
       end={end}
-      className="flex flex-1 flex-col items-center justify-center gap-1 pt-2"
+      className="flex flex-1 flex-col items-center justify-center gap-1 pt-2.5"
     >
       {({ isActive }) => (
         <>
-          <Icon size={22} className={isActive ? 'text-amber' : 'text-ink-3'} />
-          <span className={`text-[10px] ${isActive ? 'text-amber' : 'text-ink-3'}`}>{label}</span>
+          <Icon size={25} strokeWidth={isActive ? 2.4 : 2} className={isActive ? 'text-amber' : 'text-ink-2'} />
+          <span className={`text-[11px] font-medium ${isActive ? 'text-amber' : 'text-ink-2'}`}>
+            {label}
+          </span>
         </>
       )}
     </NavLink>
