@@ -53,7 +53,7 @@ export default function JobsListScreen() {
         }
       />
 
-      <div className="-mx-1 flex gap-2 overflow-x-auto px-5 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="no-scrollbar flex gap-2 overflow-x-auto px-5 py-3">
         {chips.map((c) => {
           const active = filter === c;
           const label = c === 'all' ? 'All' : STATUS_CONFIG[c].label;
@@ -61,10 +61,10 @@ export default function JobsListScreen() {
             <button
               key={c}
               onClick={() => setFilter(c)}
-              className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm transition ${
+              className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${
                 active
-                  ? 'border-amber/40 bg-amber-dim text-amber'
-                  : 'border-line-md bg-surf text-ink-2'
+                  ? 'bg-amber text-[#0B0E16] shadow-amber'
+                  : 'border border-line-md bg-surf text-ink-2 active:bg-elev'
               }`}
             >
               {label}

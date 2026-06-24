@@ -2,32 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Dark theme (default) */
+/* ============ Dark theme (default) — deep navy + amber ============ */
 :root {
   color-scheme: dark;
-  --bg: 9 12 21;
-  --surf: 15 21 37;
-  --card: 22 32 53;
-  --elev: 28 40 64;
-  --ink-1: 240 244 255;
-  --ink-2: 136 150 179;
-  --ink-3: 75 88 117;
-  --line: rgba(255, 255, 255, 0.05);
-  --line-md: rgba(255, 255, 255, 0.09);
+  --bg: 9 14 26;          /* #090E1A */
+  --surf: 15 22 39;       /* #0F1627 */
+  --card: 22 31 53;       /* #161F35 */
+  --elev: 30 42 71;       /* #1E2A47 */
+  --brand: 30 50 84;      /* #1E3254 navy from logo */
+  --ink-1: 240 244 252;
+  --ink-2: 148 162 188;
+  --ink-3: 92 105 132;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-md: rgba(255, 255, 255, 0.12);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-pop: 0 12px 32px -8px rgba(0, 0, 0, 0.7);
 }
 
-/* Light theme */
+/* ============ Light theme ============ */
 .light {
   color-scheme: light;
-  --bg: 247 248 250;
+  --bg: 240 243 248;      /* #F0F3F8 */
   --surf: 255 255 255;
   --card: 255 255 255;
-  --elev: 237 241 247;
-  --ink-1: 17 24 39;
-  --ink-2: 90 102 122;
-  --ink-3: 148 160 178;
-  --line: rgba(2, 6, 23, 0.08);
-  --line-md: rgba(2, 6, 23, 0.14);
+  --elev: 244 247 251;
+  --brand: 30 50 84;
+  --ink-1: 17 27 44;      /* #111B2C */
+  --ink-2: 88 102 124;
+  --ink-3: 142 154 173;
+  --line: rgba(15, 28, 51, 0.08);
+  --line-md: rgba(15, 28, 51, 0.14);
+  --shadow-card: 0 1px 2px rgba(15, 28, 51, 0.06), 0 4px 12px -4px rgba(15, 28, 51, 0.08);
+  --shadow-pop: 0 16px 40px -12px rgba(15, 28, 51, 0.22);
 }
 
 html,
@@ -40,10 +46,30 @@ body {
   margin: 0;
   background-color: rgb(var(--bg));
   color: rgb(var(--ink-1));
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Inter, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Tabular, aligned figures for money/quantities */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: -0.01em;
 }
 
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Hide scrollbars on horizontal chip rows */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

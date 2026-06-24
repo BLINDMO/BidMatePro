@@ -44,7 +44,7 @@ export default function MoreScreen() {
           ))}
         </div>
 
-        <p className="mt-8 text-center text-xs text-ink-3">BidMate Pro · © Jon Honeycutt, 2026</p>
+        <p className="mt-8 text-center text-xs text-ink-3">Honeycutt Construction · © Jon Honeycutt, 2026</p>
       </div>
     </div>
   );

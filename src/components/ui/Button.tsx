@@ -11,16 +11,16 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-amber text-[#0B0E16] font-semibold active:opacity-80',
-  secondary: 'bg-elev text-ink-1 border border-line-md active:bg-card',
+  primary: 'bg-amber text-[#0B0E16] font-semibold shadow-amber active:opacity-90',
+  secondary: 'bg-elev text-ink-1 border border-line-md shadow-card active:bg-card',
   ghost: 'bg-transparent text-ink-2 active:bg-elev',
   danger: 'bg-rose/15 text-rose border border-rose/30 active:bg-rose/25',
 };
 
 const sizes: Record<Size, string> = {
-  sm: 'h-9 px-3 text-sm rounded-lg',
-  md: 'h-11 px-4 text-[15px] rounded-xl',
-  lg: 'h-[52px] px-5 text-base rounded-xl',
+  sm: 'h-10 px-3.5 text-sm rounded-xl',
+  md: 'h-12 px-4 text-[15px] rounded-xl',
+  lg: 'h-14 px-5 text-base rounded-2xl',
 };
 
 export default function Button({
@@ -33,7 +33,7 @@ export default function Button({
 }: Props) {
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 transition disabled:opacity-40 ${variants[variant]} ${sizes[size]} ${full ? 'w-full' : ''} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 transition-all duration-150 active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 ${variants[variant]} ${sizes[size]} ${full ? 'w-full' : ''} ${className}`}
       {...rest}
     >
       {children}

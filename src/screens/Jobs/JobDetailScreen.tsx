@@ -185,14 +185,16 @@ export default function JobDetailScreen() {
       </div>
 
       {/* Money row */}
-      <div className="mt-4 grid grid-cols-3 gap-2.5 px-5">
-        <Money label="Estimate" value={fmtCurrency(job.estimateTotal)} accent="text-ink-1" />
-        <Money label="Paid" value={fmtCurrency(job.totalPaid)} accent="text-jade" />
-        <Money
-          label="Balance"
-          value={fmtCurrency(job.balanceDue)}
-          accent={job.balanceDue > 0 ? 'text-rose' : 'text-jade'}
-        />
+      <div className="mt-4 px-5">
+        <div className="grid grid-cols-3 divide-x divide-line rounded-2xl border border-line bg-card py-3.5 shadow-card">
+          <Money label="Estimate" value={fmtCurrency(job.estimateTotal)} accent="text-ink-1" />
+          <Money label="Paid" value={fmtCurrency(job.totalPaid)} accent="text-jade" />
+          <Money
+            label="Balance"
+            value={fmtCurrency(job.balanceDue)}
+            accent={job.balanceDue > 0 ? 'text-rose' : 'text-jade'}
+          />
+        </div>
       </div>
 
       <div className="mt-5 px-5">
@@ -602,9 +604,9 @@ export default function JobDetailScreen() {
 
 function Money({ label, value, accent }: { label: string; value: string; accent: string }) {
   return (
-    <div className="rounded-2xl border border-line bg-card p-3 text-center">
-      <p className={`text-lg font-bold ${accent}`}>{value}</p>
-      <p className="text-[11px] text-ink-2">{label}</p>
+    <div className="px-2 text-center">
+      <p className={`tnum text-lg font-bold ${accent}`}>{value}</p>
+      <p className="mt-0.5 text-2xs font-medium uppercase tracking-wide text-ink-3">{label}</p>
     </div>
   );
 }

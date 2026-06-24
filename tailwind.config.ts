@@ -9,6 +9,7 @@ export default {
         surf: 'rgb(var(--surf) / <alpha-value>)',
         card: 'rgb(var(--card) / <alpha-value>)',
         elev: 'rgb(var(--elev) / <alpha-value>)',
+        brand: 'rgb(var(--brand) / <alpha-value>)',
         amber: '#F5A623',
         'amber-dim': 'rgba(245,166,35,0.14)',
         teal: '#2DD4BF',
@@ -22,8 +23,16 @@ export default {
         line: 'var(--line)',
         'line-md': 'var(--line-md)',
       },
-      fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Inter', 'sans-serif'],
+      boxShadow: {
+        card: 'var(--shadow-card)',
+        pop: 'var(--shadow-pop)',
+        amber: '0 8px 24px -6px rgba(245,166,35,0.45)',
+      },
+      borderRadius: {
+        '4xl': '28px',
+      },
+      fontSize: {
+        '2xs': ['11px', '14px'],
       },
     },
   },

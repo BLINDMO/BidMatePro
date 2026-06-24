@@ -3,7 +3,7 @@ import { db } from './database';
 
 export const DEFAULT_SETTINGS: CompanySettings = {
   id: 1,
-  companyName: 'Your Company Name',
+  companyName: 'Honeycutt Construction',
   ownerName: '',
   phone: '',
   email: '',

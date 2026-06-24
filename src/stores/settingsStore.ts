@@ -34,11 +34,11 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
       localStorage.setItem(MIGRATION_KEY, '1');
     }
 
-    // One-time: seed the Heller Construction brand logo + name if not yet set.
-    const BRAND_KEY = 'bidmate-brand-logo-v1';
-    if (typeof localStorage !== 'undefined' && !localStorage.getItem(BRAND_KEY) && !settings.logoDataUrl) {
+    // One-time: seed the Honeycutt Construction brand logo + name.
+    const BRAND_KEY = 'honeycutt-brand-logo-v1';
+    if (typeof localStorage !== 'undefined' && !localStorage.getItem(BRAND_KEY)) {
       try {
-        const res = await fetch(`${import.meta.env.BASE_URL}brand/heller-logo.png`);
+        const res = await fetch(`${import.meta.env.BASE_URL}brand/honeycutt-logo.png`);
         const blob = await res.blob();
         const dataUrl = await new Promise<string>((resolve, reject) => {
           const r = new FileReader();
@@ -46,11 +46,14 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
           r.onerror = reject;
           r.readAsDataURL(blob);
         });
+        const isPlaceholder =
+          !settings.companyName ||
+          settings.companyName === 'Your Company Name' ||
+          settings.companyName === 'Heller Construction';
         settings = {
           ...settings,
           logoDataUrl: dataUrl,
-          companyName:
-            settings.companyName === 'Your Company Name' ? 'Heller Construction' : settings.companyName,
+          companyName: isPlaceholder ? 'Honeycutt Construction' : settings.companyName,
         };
         await db.settings.put(settings);
         localStorage.setItem(BRAND_KEY, '1');
