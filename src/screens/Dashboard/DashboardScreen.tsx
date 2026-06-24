@@ -63,7 +63,7 @@ export default function DashboardScreen() {
       {/* Stat chips */}
       <div className="mt-3 grid grid-cols-2 gap-3 px-5">
         <StatChip icon={<Hammer size={18} />} value={activeCount} label="Active Jobs" color="text-teal" tint="bg-teal/12" />
-        <StatChip icon={<FileText size={18} />} value={estimateCount} label="Pending Estimates" color="text-amber" tint="bg-amber/12" />
+        <StatChip icon={<FileText size={18} />} value={estimateCount} label="Estimates" color="text-amber" tint="bg-amber/12" />
       </div>
 
       {/* Primary actions */}
